@@ -1,13 +1,18 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Microscope, Database, LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
+
+  const handleNavClick = (href: string) => {
+    router.push(href);
+  };
 
   const navItems = [
     { href: "/", label: "AI 분석", icon: Microscope },
@@ -32,10 +37,10 @@ export default function Navigation() {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
-                <Link
+                <button
                   key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  onClick={() => handleNavClick(item.href)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                     isActive
                       ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                       : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -43,7 +48,7 @@ export default function Navigation() {
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.label}</span>
-                </Link>
+                </button>
               );
             })}
           </nav>
