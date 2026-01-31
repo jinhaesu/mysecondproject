@@ -46,7 +46,8 @@ export default function LoginPage() {
       setStep("verification");
     } catch (err) {
       console.error("Login error:", err);
-      setError("로그인 중 오류가 발생했습니다.");
+      const errorMsg = err instanceof Error ? err.message : "알 수 없는 오류";
+      setError(`로그인 중 오류: ${errorMsg}`);
     } finally {
       setIsLoading(false);
     }
