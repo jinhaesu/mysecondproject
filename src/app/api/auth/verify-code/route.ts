@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 코드 확인
-    if (storedData.code !== code) {
+    // 코드 확인 (문자열로 변환하여 비교)
+    if (storedData.code !== String(code)) {
       return NextResponse.json(
         { error: "인증 코드가 올바르지 않습니다." },
         { status: 400 }
