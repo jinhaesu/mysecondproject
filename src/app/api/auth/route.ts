@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 실제 운영 환경에서는 데이터베이스와 해시된 비밀번호를 사용해야 합니다
+// 허용된 이메일 목록 (비밀번호 없이 이메일 인증만으로 로그인)
 export const USERS = [
-  { id: "1", email: "admin@research.com", password: "admin1234", name: "관리자" },
-  { id: "2", email: "researcher@research.com", password: "research1234", name: "연구원" },
+  { id: "1", email: "engineer@joinandjoin.com", name: "Engineer" },
+  { id: "2", email: "lion9080@joinandjoin.com", name: "Lion" },
 ];
 
 // 인증 코드 저장소 (실제 환경에서는 Redis 등 사용)
@@ -27,30 +27,28 @@ if (!global.verificationCodes) {
 
 export const verificationCodes = global.verificationCodes;
 
-// 이메일/비밀번호 확인만 수행 (실제 로그인 X)
+// 이메일 확인 (허용된 이메일인지 체크)
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email } = await request.json();
 
-    if (!email || !password) {
+    if (!email) {
       return NextResponse.json(
-        { error: "이메일과 비밀번호를 입력해주세요." },
+        { error: "이메일을 입력해주세요." },
         { status: 400 }
       );
     }
 
-    const user = USERS.find(
-      (u) => u.email === email && u.password === password
-    );
+    const user = USERS.find((u) => u.email === email);
 
     if (!user) {
       return NextResponse.json(
-        { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
+        { error: "등록되지 않은 이메일입니다." },
         { status: 401 }
       );
     }
 
-    // 1단계: 이메일/비밀번호 확인 성공 - 인증 코드 전송 필요
+    // 이메일 확인 성공 - 인증 코드 전송 필요
     return NextResponse.json({
       success: true,
       requireVerification: true,

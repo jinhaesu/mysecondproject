@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Microscope, Mail, Lock, Loader2, KeyRound, ArrowLeft } from "lucide-react";
+import { Microscope, Mail, Loader2, KeyRound, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-type LoginStep = "credentials" | "verification";
+type LoginStep = "email" | "verification";
 
 export default function LoginPage() {
-  const [step, setStep] = useState<LoginStep>("credentials");
+  const [step, setStep] = useState<LoginStep>("email");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,8 +17,8 @@ export default function LoginPage() {
   const { verifyAndLogin } = useAuth();
   const router = useRouter();
 
-  // 1단계: 이메일/비밀번호 확인 및 인증 코드 전송
-  const handleCredentialsSubmit = async (e: React.FormEvent) => {
+  // 1단계: 이메일 확인 및 인증 코드 전송
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -28,7 +27,7 @@ export default function LoginPage() {
       const response = await fetch("/api/auth/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
@@ -63,6 +62,8 @@ export default function LoginPage() {
       const success = await verifyAndLogin(email, verificationCode);
       if (success) {
         router.push("/");
+      } else {
+        setError("인증 코드가 올바르지 않습니다.");
       }
     } catch (err) {
       console.error("Verification error:", err);
@@ -81,7 +82,7 @@ export default function LoginPage() {
       const response = await fetch("/api/auth/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
@@ -107,7 +108,7 @@ export default function LoginPage() {
 
   // 처음으로 돌아가기
   const handleBack = () => {
-    setStep("credentials");
+    setStep("email");
     setVerificationCode("");
     setError(null);
     setDevCode(null);
@@ -129,11 +130,11 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8">
-          {step === "credentials" ? (
+          {step === "email" ? (
             <>
               <h2 className="text-lg font-semibold mb-6">로그인</h2>
 
-              <form onSubmit={handleCredentialsSubmit} className="space-y-4">
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">이메일</label>
                   <div className="relative">
@@ -147,22 +148,9 @@ export default function LoginPage() {
                       required
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">비밀번호</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="비밀번호 입력"
-                      className="input-field pl-10"
-                      required
-                      minLength={4}
-                    />
-                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    등록된 이메일로 인증 코드가 전송됩니다.
+                  </p>
                 </div>
 
                 {error && (
@@ -179,21 +167,13 @@ export default function LoginPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 loading-spinner" />
-                      확인 중...
+                      전송 중...
                     </>
                   ) : (
-                    "다음"
+                    "인증 코드 받기"
                   )}
                 </button>
               </form>
-
-              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <p className="text-xs font-medium text-gray-500 mb-2">테스트 계정</p>
-                <div className="space-y-1 text-xs text-gray-400">
-                  <p>관리자: admin@research.com / admin1234</p>
-                  <p>연구원: researcher@research.com / research1234</p>
-                </div>
-              </div>
             </>
           ) : (
             <>

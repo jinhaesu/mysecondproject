@@ -9,23 +9,21 @@ function generateVerificationCode(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email } = await request.json();
 
-    if (!email || !password) {
+    if (!email) {
       return NextResponse.json(
-        { error: "이메일과 비밀번호를 입력해주세요." },
+        { error: "이메일을 입력해주세요." },
         { status: 400 }
       );
     }
 
-    // 사용자 확인
-    const user = USERS.find(
-      (u) => u.email === email && u.password === password
-    );
+    // 사용자 확인 (이메일만 체크)
+    const user = USERS.find((u) => u.email === email);
 
     if (!user) {
       return NextResponse.json(
-        { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
+        { error: "등록되지 않은 이메일입니다." },
         { status: 401 }
       );
     }
