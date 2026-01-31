@@ -265,11 +265,16 @@ async def chat(request: ChatRequest):
         # 유사 문서 검색 (Supabase RPC 함수 호출)
         result = supabase.rpc('match_documents', {
             'query_embedding': query_embedding,
-            'match_threshold': 0.5,
+            'match_threshold': 0.3,
             'match_count': request.top_k
         }).execute()
 
         documents = result.data if result.data else []
+
+        # 문서가 없으면 전체 문서에서 직접 검색
+        if not documents:
+            fallback = supabase.table('documents').select('content, metadata').limit(request.top_k).execute()
+            documents = fallback.data if fallback.data else []
 
         # 컨텍스트 구성
         context = "\n\n---\n\n".join([
