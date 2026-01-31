@@ -16,6 +16,7 @@ import {
   FolderOpen,
   BarChart3,
   Tag,
+  Download,
 } from "lucide-react";
 import {
   LineChart,
@@ -281,6 +282,49 @@ export default function DataPage() {
 
   const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
 
+  const downloadCSV = (experiment: ExperimentData) => {
+    // CSV 헤더 생성
+    const headers = experiment.columns.join(",");
+
+    // CSV 데이터 행 생성
+    const csvRows = experiment.rows.map((row) =>
+      experiment.columns.map((col) => {
+        const value = row[col] || "";
+        // 쉼표나 줄바꿈이 포함된 경우 따옴표로 감싸기
+        if (value.includes(",") || value.includes("\n") || value.includes('"')) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      }).join(",")
+    );
+
+    // 메타데이터 추가
+    const metadata = [
+      `# 프로젝트: ${experiment.projectName}`,
+      `# 주제: ${experiment.topic || "없음"}`,
+      `# 책임자: ${experiment.managerName}`,
+      `# 목적: ${experiment.purpose || "없음"}`,
+      `# 생성일: ${formatDate(experiment.createdAt)}`,
+      "",
+    ];
+
+    const csvContent = [...metadata, headers, ...csvRows].join("\n");
+
+    // BOM 추가 (한글 지원)
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+
+    // 다운로드 링크 생성
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${experiment.projectName}_${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="mb-6">
@@ -332,6 +376,14 @@ export default function DataPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => downloadCSV(experiment)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                    title="CSV 다운로드"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>CSV</span>
+                  </button>
                   <button
                     onClick={() => toggleChart(experiment.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
