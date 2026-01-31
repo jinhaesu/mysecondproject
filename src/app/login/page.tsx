@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Microscope, Mail, Loader2, KeyRound, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
 type LoginStep = "email" | "verification";
 
@@ -13,9 +11,6 @@ export default function LoginPage() {
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [devCode, setDevCode] = useState<string | null>(null);
-  const { verifyAndLogin } = useAuth();
-  const router = useRouter();
 
   // 1단계: 이메일 확인 및 인증 코드 전송
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -37,11 +32,6 @@ export default function LoginPage() {
         return;
       }
 
-      // 개발 환경에서 코드 표시
-      if (data.devCode) {
-        setDevCode(data.devCode);
-      }
-
       // 2단계로 이동
       setStep("verification");
     } catch (err) {
@@ -56,7 +46,7 @@ export default function LoginPage() {
   // 2단계: 인증 코드 확인
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return; // 중복 제출 방지
+    if (isLoading) return;
 
     setIsLoading(true);
     setError(null);
@@ -108,12 +98,7 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.devCode) {
-        setDevCode(data.devCode);
-      }
-
-      setError(null);
-      alert("인증 코드가 재전송되었습니다.");
+      alert("인증 코드가 재전송되었습니다. 이메일을 확인해주세요.");
     } catch (err) {
       console.error("Resend error:", err);
       setError("코드 재전송 중 오류가 발생했습니다.");
@@ -127,7 +112,6 @@ export default function LoginPage() {
     setStep("email");
     setVerificationCode("");
     setError(null);
-    setDevCode(null);
   };
 
   return (
@@ -211,14 +195,6 @@ export default function LoginPage() {
                   이메일을 확인하고 인증 코드를 입력해주세요.
                 </p>
               </div>
-
-              {devCode && (
-                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <p className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
-                    [개발 모드] 인증 코드: <span className="font-mono text-lg">{devCode}</span>
-                  </p>
-                </div>
-              )}
 
               <form onSubmit={handleVerificationSubmit} className="space-y-4">
                 <div>
