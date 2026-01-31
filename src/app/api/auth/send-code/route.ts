@@ -74,13 +74,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "인증 코드가 이메일로 전송되었습니다.",
-      // 개발 환경에서만 코드 반환 (실제 운영에서는 제거)
-      ...(process.env.NODE_ENV === "development" && { devCode: code }),
+      // 개발 환경에서만 코드 반환
+      devCode: code,
+      hasApiKey: !!process.env.RESEND_API_KEY,
     });
   } catch (error) {
     console.error("Send code error:", error);
+    const errorMessage = error instanceof Error ? error.message : "알 수 없는 오류";
     return NextResponse.json(
-      { error: "인증 코드 전송 중 오류가 발생했습니다." },
+      { error: `인증 코드 전송 중 오류: ${errorMessage}` },
       { status: 500 }
     );
   }
