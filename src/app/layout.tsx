@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import AuthWrapper from "@/components/AuthWrapper";
 
 export const metadata: Metadata = {
   title: "AI Research Assistant - 생명과학 | 화학 | 식품공학",
@@ -14,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="antialiased">
-        {children}
+        <AuthProvider>
+          <AuthWrapper>{children}</AuthWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

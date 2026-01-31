@@ -2,10 +2,10 @@
 
 import { useState, useCallback } from "react";
 import {
-  Microscope,
   Send,
   Loader2,
   RefreshCw,
+  Microscope,
 } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import AnalysisResult from "@/components/AnalysisResult";
@@ -150,25 +150,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <Microscope className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">AI Research Assistant</h1>
-              <p className="text-xs text-gray-500">
-                생명과학 | 화학 | 식품공학 전문 연구 어시스턴트
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Left Column - Input */}
           <div className="space-y-6">
@@ -270,14 +252,6 @@ export default function Home() {
             )}
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-gray-800 mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
-          AI Research Assistant - Powered by Claude AI
-        </div>
-      </footer>
     </div>
   );
 }

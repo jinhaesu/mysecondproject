@@ -50,3 +50,31 @@ export interface FundamentalKnowledge {
   }[];
   recommendedResources: string[];
 }
+
+// Auth types
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
+// Experiment Data types
+export interface ExperimentData {
+  id: string;
+  projectName: string;
+  purpose: string;
+  managerName: string;
+  password: string;
+  createdAt: string;
+  updatedAt: string;
+  columns: string[];
+  rows: Record<string, string>[];
+  aiAnalysis?: ExperimentAIAnalysis;
+}
+
+export interface ExperimentAIAnalysis {
+  summary: string;
+  insights: string[];
+  recommendations: string[];
+  dataQuality: string;
+}
