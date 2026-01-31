@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { User } from "@/types";
 
 // 세션 타임아웃 설정 (밀리초)
@@ -13,7 +13,6 @@ interface AuthContextType {
   loginError: string | null;
   verifyAndLogin: (email: string, code: string) => Promise<boolean>;
   logout: () => void;
-  updateActivity: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,70 +21,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const initialized = useRef(false);
 
   // 로그아웃 처리
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("lastActivity");
+    window.location.href = "/login";
   }, []);
-
-  // 활동 시간 업데이트
-  const updateActivity = useCallback(() => {
-    if (user) {
-      localStorage.setItem("lastActivity", Date.now().toString());
-    }
-  }, [user]);
-
-  // 세션 만료 체크
-  const checkSessionExpiry = useCallback(() => {
-    const lastActivity = localStorage.getItem("lastActivity");
-    if (lastActivity) {
-      const elapsed = Date.now() - parseInt(lastActivity, 10);
-      if (elapsed > SESSION_TIMEOUT) {
-        logout();
-        alert("보안을 위해 자동 로그아웃 되었습니다. 다시 로그인해주세요.");
-        window.location.href = "/login";
-        return true;
-      }
-    }
-    return false;
-  }, [logout]);
 
   // 초기 로드 시 사용자 정보 및 세션 확인
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      // 세션 만료 확인
-      if (!checkSessionExpiry()) {
+    const lastActivity = localStorage.getItem("lastActivity");
+
+    if (savedUser && lastActivity) {
+      const elapsed = Date.now() - parseInt(lastActivity, 10);
+      if (elapsed > SESSION_TIMEOUT) {
+        // 세션 만료
+        localStorage.removeItem("user");
+        localStorage.removeItem("lastActivity");
+      } else {
         setUser(JSON.parse(savedUser));
-        updateActivity();
+        localStorage.setItem("lastActivity", Date.now().toString());
       }
     }
     setIsLoading(false);
-  }, [checkSessionExpiry, updateActivity]);
+  }, []);
 
   // 주기적 세션 체크
   useEffect(() => {
     if (!user) return;
 
     const interval = setInterval(() => {
-      checkSessionExpiry();
+      const lastActivity = localStorage.getItem("lastActivity");
+      if (lastActivity) {
+        const elapsed = Date.now() - parseInt(lastActivity, 10);
+        if (elapsed > SESSION_TIMEOUT) {
+          alert("보안을 위해 자동 로그아웃 되었습니다. 다시 로그인해주세요.");
+          logout();
+        }
+      }
     }, ACTIVITY_CHECK_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [user, checkSessionExpiry]);
+  }, [user, logout]);
 
-  // 사용자 활동 감지 (마우스, 키보드, 터치, 스크롤)
+  // 사용자 활동 감지
   useEffect(() => {
     if (!user) return;
 
-    const events = ["mousedown", "keydown", "touchstart", "scroll"];
-
     const handleActivity = () => {
-      updateActivity();
+      localStorage.setItem("lastActivity", Date.now().toString());
     };
 
+    const events = ["mousedown", "keydown", "touchstart", "scroll"];
     events.forEach((event) => {
       window.addEventListener(event, handleActivity, { passive: true });
     });
@@ -95,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.removeEventListener(event, handleActivity);
       });
     };
-  }, [user, updateActivity]);
+  }, [user]);
 
   // 인증 코드 확인 후 로그인
   const verifyAndLogin = async (email: string, code: string): Promise<boolean> => {
@@ -127,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, loginError, verifyAndLogin, logout, updateActivity }}>
+    <AuthContext.Provider value={{ user, isLoading, loginError, verifyAndLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
