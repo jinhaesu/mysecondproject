@@ -114,8 +114,8 @@ def get_google_slides_content(service, file_id: str) -> str:
 
 
 def download_file(service, file_id: str) -> bytes:
-    """파일 다운로드"""
-    request = service.files().get_media(fileId=file_id)
+    """파일 다운로드 (공유 드라이브 지원)"""
+    request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
     fh = io.BytesIO()
     downloader = MediaIoBaseDownload(fh, request)
     done = False
@@ -171,10 +171,12 @@ async def sync_documents():
     try:
         service = get_drive_service()
 
-        # 폴더 내 파일 목록 조회
+        # 폴더 내 파일 목록 조회 (공유 드라이브 지원)
         results = service.files().list(
             q=f"'{GOOGLE_DRIVE_FOLDER_ID}' in parents and trashed=false",
-            fields="files(id, name, mimeType, modifiedTime)"
+            fields="files(id, name, mimeType, modifiedTime)",
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True
         ).execute()
 
         files = results.get('files', [])
