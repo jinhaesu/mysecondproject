@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const USERS = [
   { id: "1", email: "engineer@joinandjoin.com", name: "Engineer" },
   { id: "2", email: "lion9080@joinandjoin.com", name: "Lion" },
+  { id: "3", email: "lion9080@gmail.com", name: "Lion (Gmail)" },
 ];
 
 // 인증 코드 저장소 (실제 환경에서는 Redis 등 사용)
