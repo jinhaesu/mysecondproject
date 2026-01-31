@@ -56,20 +56,35 @@ export default function LoginPage() {
   // 2단계: 인증 코드 확인
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return; // 중복 제출 방지
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const success = await verifyAndLogin(email, verificationCode);
-      if (success) {
-        router.push("/");
-      } else {
-        setError("인증 코드가 올바르지 않습니다.");
+      const response = await fetch("/api/auth/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "인증에 실패했습니다.");
+        setIsLoading(false);
+        return;
       }
+
+      // 로그인 성공
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("lastActivity", Date.now().toString());
+
+      // 페이지 이동
+      window.location.href = "/";
     } catch (err) {
       console.error("Verification error:", err);
       setError("인증 중 오류가 발생했습니다.");
-    } finally {
       setIsLoading(false);
     }
   };
