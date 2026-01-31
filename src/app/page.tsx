@@ -66,13 +66,17 @@ export default function Home() {
         }),
       });
 
-      if (!response.ok) throw new Error("Analysis failed");
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Analysis failed");
+      }
+
       setAnalysis(data);
     } catch (error) {
       console.error("Analysis error:", error);
-      alert("분석 중 오류가 발생했습니다. 다시 시도해주세요.");
+      const message = error instanceof Error ? error.message : "분석 중 오류가 발생했습니다.";
+      alert(message);
     } finally {
       setIsAnalyzing(false);
     }

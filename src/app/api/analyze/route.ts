@@ -66,8 +66,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(analysis);
   } catch (error) {
     console.error("Analysis error:", error);
+    const errorMessage = error instanceof Error ? error.message : "알 수 없는 오류";
+
+    if (errorMessage.includes("API key") || errorMessage.includes("authentication") || errorMessage.includes("401")) {
+      return NextResponse.json(
+        { error: "API 키가 설정되지 않았거나 유효하지 않습니다. .env.local 파일에 ANTHROPIC_API_KEY를 설정해주세요." },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "분석 중 오류가 발생했습니다." },
+      { error: `분석 중 오류가 발생했습니다: ${errorMessage}` },
       { status: 500 }
     );
   }
