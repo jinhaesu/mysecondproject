@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   loginError: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  verifyAndLogin: (email: string, code: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -26,20 +26,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  // 인증 코드 확인 후 로그인
+  const verifyAndLogin = async (email: string, code: string): Promise<boolean> => {
     setLoginError(null);
 
     try {
-      const response = await fetch("/api/auth", {
+      const response = await fetch("/api/auth/verify-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, code }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setLoginError(data.error || "로그인에 실패했습니다.");
+        setLoginError(data.error || "인증에 실패했습니다.");
         return false;
       }
 
@@ -47,8 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("user", JSON.stringify(data.user));
       return true;
     } catch (error) {
-      console.error("Login error:", error);
-      setLoginError("로그인 중 오류가 발생했습니다.");
+      console.error("Verify login error:", error);
+      setLoginError("인증 중 오류가 발생했습니다.");
       return false;
     }
   };
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, loginError, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, loginError, verifyAndLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
