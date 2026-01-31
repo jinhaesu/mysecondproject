@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Loader2, FileText } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, FileText, RefreshCw } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,7 +16,25 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/sync`, { method: "POST" });
+      const data = await response.json();
+      if (data.success) {
+        alert(`동기화 완료: ${data.synced_count}개 파일`);
+      }
+    } catch (error) {
+      console.error("Sync error:", error);
+      alert("동기화 중 오류가 발생했습니다.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,9 +94,19 @@ export default function ChatWidget() {
       {isOpen && (
         <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-blue-600 rounded-t-2xl">
-            <h3 className="text-white font-semibold">AI Research Assistant</h3>
-            <p className="text-blue-100 text-xs">연구 자료 기반 AI 채팅</p>
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-blue-600 rounded-t-2xl flex justify-between items-start">
+            <div>
+              <h3 className="text-white font-semibold">AI Research Assistant</h3>
+              <p className="text-blue-100 text-xs">연구 자료 기반 AI 채팅</p>
+            </div>
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="p-2 hover:bg-blue-500 rounded-lg transition-colors"
+              title="Google Drive 동기화"
+            >
+              <RefreshCw className={`w-4 h-4 text-white ${isSyncing ? "animate-spin" : ""}`} />
+            </button>
           </div>
 
           {/* Messages */}
