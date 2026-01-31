@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
+import ChatWidget from "@/components/ChatWidget";
 
 export default function AuthWrapper({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -47,6 +48,7 @@ export default function AuthWrapper({ children }: { children: ReactNode }) {
     <div className="min-h-screen">
       <Navigation />
       <main>{children}</main>
+      <ChatWidget />
     </div>
   );
 }
