@@ -8,25 +8,19 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginError } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
 
     try {
       const success = await login(email, password);
       if (success) {
         router.push("/");
-      } else {
-        setError("이메일과 비밀번호를 확인해주세요.");
       }
-    } catch {
-      setError("로그인 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -82,9 +76,9 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && (
+            {loginError && (
               <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
-                {error}
+                {loginError}
               </p>
             )}
 
@@ -104,9 +98,13 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-xs text-center text-gray-400 mt-6">
-            데모 버전: 아무 이메일과 4자리 이상 비밀번호로 로그인 가능
-          </p>
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <p className="text-xs font-medium text-gray-500 mb-2">테스트 계정</p>
+            <div className="space-y-1 text-xs text-gray-400">
+              <p>관리자: admin@research.com / admin1234</p>
+              <p>연구원: researcher@research.com / research1234</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -14,22 +14,45 @@ import {
   ChevronDown,
   ChevronUp,
   FolderOpen,
+  BarChart3,
+  Tag,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  ScatterChart,
+  Scatter,
+} from "recharts";
 import { ExperimentData, ExperimentAIAnalysis } from "@/types";
+
+type ChartType = "line" | "bar" | "scatter";
 
 export default function DataPage() {
   const [experiments, setExperiments] = useState<ExperimentData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isDeletePasswordModalOpen, setIsDeletePasswordModalOpen] = useState(false);
   const [selectedExperiment, setSelectedExperiment] = useState<ExperimentData | null>(null);
+  const [experimentToDelete, setExperimentToDelete] = useState<ExperimentData | null>(null);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [expandedAI, setExpandedAI] = useState<string | null>(null);
+  const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [loadingAI, setLoadingAI] = useState<string | null>(null);
+  const [chartType, setChartType] = useState<ChartType>("line");
 
   // Form state
   const [formData, setFormData] = useState({
     projectName: "",
+    topic: "",
     purpose: "",
     managerName: "",
     password: "",
@@ -50,7 +73,7 @@ export default function DataPage() {
   };
 
   const resetForm = () => {
-    setFormData({ projectName: "", purpose: "", managerName: "", password: "" });
+    setFormData({ projectName: "", topic: "", purpose: "", managerName: "", password: "" });
     setColumns(["X", "Y"]);
     setRows([{ X: "", Y: "" }]);
     setSelectedExperiment(null);
@@ -76,6 +99,7 @@ export default function DataPage() {
     const newExperiment: ExperimentData = {
       id: selectedExperiment?.id || crypto.randomUUID(),
       projectName: formData.projectName,
+      topic: formData.topic,
       purpose: formData.purpose,
       managerName: formData.managerName,
       password: formData.password,
@@ -97,9 +121,21 @@ export default function DataPage() {
     handleCloseModal();
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("정말 삭제하시겠습니까?")) {
-      saveExperiments(experiments.filter((e) => e.id !== id));
+  const handleDeleteClick = (experiment: ExperimentData) => {
+    setExperimentToDelete(experiment);
+    setPasswordInput("");
+    setPasswordError("");
+    setIsDeletePasswordModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (experimentToDelete && passwordInput === experimentToDelete.password) {
+      saveExperiments(experiments.filter((e) => e.id !== experimentToDelete.id));
+      setIsDeletePasswordModalOpen(false);
+      setExperimentToDelete(null);
+      setPasswordInput("");
+    } else {
+      setPasswordError("비밀번호가 일치하지 않습니다.");
     }
   };
 
@@ -115,6 +151,7 @@ export default function DataPage() {
       setIsPasswordModalOpen(false);
       setFormData({
         projectName: selectedExperiment.projectName,
+        topic: selectedExperiment.topic || "",
         purpose: selectedExperiment.purpose,
         managerName: selectedExperiment.managerName,
         password: selectedExperiment.password,
@@ -219,6 +256,21 @@ export default function DataPage() {
     }
   };
 
+  const toggleChart = (experimentId: string) => {
+    setExpandedChart(expandedChart === experimentId ? null : experimentId);
+  };
+
+  const getChartData = (experiment: ExperimentData) => {
+    return experiment.rows.map((row, index) => {
+      const dataPoint: Record<string, number | string> = { index: index + 1 };
+      experiment.columns.forEach((col) => {
+        const value = parseFloat(row[col]);
+        dataPoint[col] = isNaN(value) ? 0 : value;
+      });
+      return dataPoint;
+    });
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ko-KR", {
       year: "numeric",
@@ -226,6 +278,8 @@ export default function DataPage() {
       day: "numeric",
     });
   };
+
+  const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -257,6 +311,14 @@ export default function DataPage() {
                   onClick={() => handleOpenExperiment(experiment)}
                 >
                   <h3 className="font-semibold">{experiment.projectName}</h3>
+                  {experiment.topic && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <Tag className="w-3 h-3 text-blue-500" />
+                      <span className="text-xs text-blue-600 dark:text-blue-400">
+                        {experiment.topic}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
                       <User className="w-3.5 h-3.5" />
@@ -270,6 +332,22 @@ export default function DataPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleChart(experiment.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      expandedChart === experiment.id
+                        ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
+                        : "text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30"
+                    }`}
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    <span>그래프</span>
+                    {expandedChart === experiment.id ? (
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                   <button
                     onClick={() => handleAIAnalysis(experiment)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -292,13 +370,86 @@ export default function DataPage() {
                     )}
                   </button>
                   <button
-                    onClick={() => handleDelete(experiment.id)}
+                    onClick={() => handleDeleteClick(experiment)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
+
+              {/* Chart Panel */}
+              {expandedChart === experiment.id && (
+                <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-sm font-medium">차트 유형:</span>
+                    <div className="flex gap-1">
+                      {(["line", "bar", "scatter"] as ChartType[]).map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setChartType(type)}
+                          className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                            chartType === type
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                          }`}
+                        >
+                          {type === "line" ? "선형" : type === "bar" ? "막대" : "산점도"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      {chartType === "line" ? (
+                        <LineChart data={getChartData(experiment)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="index" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          {experiment.columns.map((col, i) => (
+                            <Line
+                              key={col}
+                              type="monotone"
+                              dataKey={col}
+                              stroke={COLORS[i % COLORS.length]}
+                              strokeWidth={2}
+                            />
+                          ))}
+                        </LineChart>
+                      ) : chartType === "bar" ? (
+                        <BarChart data={getChartData(experiment)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="index" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          {experiment.columns.map((col, i) => (
+                            <Bar
+                              key={col}
+                              dataKey={col}
+                              fill={COLORS[i % COLORS.length]}
+                            />
+                          ))}
+                        </BarChart>
+                      ) : (
+                        <ScatterChart>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey={experiment.columns[0]} name={experiment.columns[0]} />
+                          <YAxis dataKey={experiment.columns[1]} name={experiment.columns[1]} />
+                          <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+                          <Scatter
+                            name="데이터"
+                            data={getChartData(experiment)}
+                            fill="#3B82F6"
+                          />
+                        </ScatterChart>
+                      )}
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
 
               {/* AI Analysis Panel */}
               {expandedAI === experiment.id && (
@@ -327,7 +478,7 @@ export default function DataPage() {
         <span className="font-medium">실험 데이터 기록하기</span>
       </button>
 
-      {/* Password Modal */}
+      {/* Password Modal for Opening */}
       {isPasswordModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm">
@@ -360,6 +511,52 @@ export default function DataPage() {
               </button>
               <button onClick={handlePasswordSubmit} className="btn-primary flex-1">
                 확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Modal for Deleting */}
+      {isDeletePasswordModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold">삭제 확인</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              <span className="font-medium">{experimentToDelete?.projectName}</span>을(를) 삭제하려면 비밀번호를 입력하세요.
+            </p>
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="비밀번호 입력"
+              className="input-field mb-3"
+              onKeyDown={(e) => e.key === "Enter" && handleDeleteConfirm()}
+            />
+            {passwordError && (
+              <p className="text-sm text-red-500 mb-3">{passwordError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setIsDeletePasswordModalOpen(false);
+                  setExperimentToDelete(null);
+                  setPasswordInput("");
+                }}
+                className="btn-secondary flex-1"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                삭제
               </button>
             </div>
           </div>
@@ -418,6 +615,21 @@ export default function DataPage() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium mb-2">
+                  데이터 주제
+                </label>
+                <input
+                  type="text"
+                  value={formData.topic}
+                  onChange={(e) =>
+                    setFormData({ ...formData, topic: e.target.value })
+                  }
+                  placeholder="예: 세포 성장률, pH 변화, 온도별 반응속도 등"
+                  className="input-field"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-2">실험 목적</label>
                 <textarea
                   value={formData.purpose}
@@ -431,7 +643,7 @@ export default function DataPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  비밀번호 * (데이터 열람 시 필요)
+                  비밀번호 * (데이터 열람/삭제 시 필요)
                 </label>
                 <input
                   type="password"

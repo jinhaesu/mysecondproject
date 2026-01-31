@@ -62,6 +62,7 @@ export interface User {
 export interface ExperimentData {
   id: string;
   projectName: string;
+  topic: string;
   purpose: string;
   managerName: string;
   password: string;

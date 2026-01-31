@@ -6,6 +6,7 @@ import { User } from "@/types";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  loginError: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -25,18 +27,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // 간단한 데모용 로그인 (실제로는 서버 인증 필요)
-    if (email && password.length >= 4) {
-      const newUser: User = {
-        id: crypto.randomUUID(),
-        email,
-        name: email.split("@")[0],
-      };
-      setUser(newUser);
-      localStorage.setItem("user", JSON.stringify(newUser));
+    setLoginError(null);
+
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setLoginError(data.error || "로그인에 실패했습니다.");
+        return false;
+      }
+
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
       return true;
+    } catch (error) {
+      console.error("Login error:", error);
+      setLoginError("로그인 중 오류가 발생했습니다.");
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
@@ -45,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, loginError, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
