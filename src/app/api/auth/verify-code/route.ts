@@ -15,6 +15,11 @@ export async function POST(request: NextRequest) {
     // 저장된 인증 코드 확인
     const storedData = verificationCodes.get(email);
 
+    console.log("[DEBUG] verify-code - email:", email);
+    console.log("[DEBUG] verify-code - input code:", code);
+    console.log("[DEBUG] verify-code - stored data:", storedData);
+    console.log("[DEBUG] verify-code - all codes:", Array.from(verificationCodes.entries()));
+
     if (!storedData) {
       return NextResponse.json(
         { error: "인증 코드가 만료되었거나 존재하지 않습니다. 다시 로그인해주세요." },
