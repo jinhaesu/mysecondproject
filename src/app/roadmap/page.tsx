@@ -12,12 +12,13 @@ import {
   ArrowRight,
   Lightbulb,
   BarChart3,
+  Gauge,
 } from "lucide-react";
 
 interface RoadmapPhase {
   phase: number;
   title: string;
-  duration: string;
+  difficulty: number;
   description: string;
   tasks: string[];
   warnings: string[];
@@ -34,10 +35,24 @@ interface KeyMetric {
 interface RoadmapData {
   topic: string;
   overview: string;
-  totalDuration: string;
+  overallDifficulty: number;
   phases: RoadmapPhase[];
   keyMetrics: KeyMetric[];
   planningTips: string[];
+}
+
+function getDifficultyColor(difficulty: number): string {
+  if (difficulty <= 3) return "bg-green-500";
+  if (difficulty <= 6) return "bg-yellow-500";
+  return "bg-red-500";
+}
+
+function getDifficultyLabel(difficulty: number): string {
+  if (difficulty <= 2) return "매우 쉬움";
+  if (difficulty <= 4) return "쉬움";
+  if (difficulty <= 6) return "보통";
+  if (difficulty <= 8) return "어려움";
+  return "매우 어려움";
 }
 
 export default function RoadmapPage() {
@@ -183,9 +198,27 @@ export default function RoadmapPage() {
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white">
             <h2 className="text-xl font-bold mb-2">{roadmap.topic}</h2>
             <p className="text-blue-100 mb-4">{roadmap.overview}</p>
-            <div className="flex items-center gap-2 text-blue-200">
-              <Target className="w-4 h-4" />
-              <span>예상 소요 기간: {roadmap.totalDuration}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Gauge className="w-4 h-4" />
+                <span>종합 난이도:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {[...Array(10)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-3 h-6 rounded-sm ${
+                        i < roadmap.overallDifficulty
+                          ? getDifficultyColor(roadmap.overallDifficulty)
+                          : "bg-white/30"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="font-bold">{roadmap.overallDifficulty}/10</span>
+                <span className="text-blue-200">({getDifficultyLabel(roadmap.overallDifficulty)})</span>
+              </div>
             </div>
           </div>
 
@@ -216,9 +249,23 @@ export default function RoadmapPage() {
                         <h4 className="font-bold text-gray-900 dark:text-white text-lg">
                           {phase.title}
                         </h4>
-                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-sm">
-                          {phase.duration}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-0.5">
+                            {[...Array(10)].map((_, i) => (
+                              <div
+                                key={i}
+                                className={`w-2 h-4 rounded-sm ${
+                                  i < phase.difficulty
+                                    ? getDifficultyColor(phase.difficulty)
+                                    : "bg-gray-200 dark:bg-gray-600"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            {phase.difficulty}/10
+                          </span>
+                        </div>
                       </div>
 
                       <p className="text-gray-600 dark:text-gray-400 mb-4">

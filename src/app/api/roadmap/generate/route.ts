@@ -9,12 +9,12 @@ const SYSTEM_PROMPT = `당신은 생명과학, 화학, 식품공학 분야의 �
 {
   "topic": "연구 주제",
   "overview": "연구 개요 및 목표 (2-3문장)",
-  "totalDuration": "총 예상 소요 기간 (예: 12-18개월)",
+  "overallDifficulty": 7,
   "phases": [
     {
       "phase": 1,
       "title": "단계 제목",
-      "duration": "소요 기간 (예: 2-3개월)",
+      "difficulty": 5,
       "description": "단계 설명",
       "tasks": ["주요 과제1", "주요 과제2", "주요 과제3"],
       "warnings": ["주의사항1", "주의사항2"],
@@ -40,7 +40,9 @@ const SYSTEM_PROMPT = `당신은 생명과학, 화학, 식품공학 분야의 �
 5. 계획 수립 유의사항은 4-6개
 6. 실제 연구 현장에서 실행 가능한 구체적인 내용으로 작성
 7. 식품/생명과학/화학 분야의 규제, 인허가, 안전성 등을 고려
-8. 한국어로 작성`;
+8. 한국어로 작성
+9. 난이도(difficulty)는 0-10 사이의 정수로 표현 (0: 매우 쉬움, 10: 매우 어려움)
+10. overallDifficulty는 전체 연구의 종합 난이도`;
 
 export async function POST(request: NextRequest) {
   try {

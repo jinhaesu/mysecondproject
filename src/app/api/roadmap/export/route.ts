@@ -17,7 +17,7 @@ import PDFDocument from "pdfkit";
 interface RoadmapPhase {
   phase: number;
   title: string;
-  duration: string;
+  difficulty: number;
   description: string;
   tasks: string[];
   warnings: string[];
@@ -34,10 +34,18 @@ interface KeyMetric {
 interface RoadmapData {
   topic: string;
   overview: string;
-  totalDuration: string;
+  overallDifficulty: number;
   phases: RoadmapPhase[];
   keyMetrics: KeyMetric[];
   planningTips: string[];
+}
+
+function getDifficultyLabel(difficulty: number): string {
+  if (difficulty <= 2) return "Very Easy";
+  if (difficulty <= 4) return "Easy";
+  if (difficulty <= 6) return "Medium";
+  if (difficulty <= 8) return "Hard";
+  return "Very Hard";
 }
 
 async function generatePDF(roadmap: RoadmapData): Promise<Buffer> {
@@ -59,7 +67,7 @@ async function generatePDF(roadmap: RoadmapData): Promise<Buffer> {
     doc.font("Helvetica-Bold").fontSize(14).text("Overview", { underline: true });
     doc.font("Helvetica").fontSize(11).text(roadmap.overview);
     doc.moveDown(0.5);
-    doc.fontSize(11).text(`Total Duration: ${roadmap.totalDuration}`);
+    doc.fontSize(11).text(`Overall Difficulty: ${roadmap.overallDifficulty}/10 (${getDifficultyLabel(roadmap.overallDifficulty)})`);
     doc.moveDown(1);
 
     // Phases
@@ -67,7 +75,7 @@ async function generatePDF(roadmap: RoadmapData): Promise<Buffer> {
     doc.moveDown(0.5);
 
     roadmap.phases.forEach((phase) => {
-      doc.font("Helvetica-Bold").fontSize(12).text(`Phase ${phase.phase}: ${phase.title} (${phase.duration})`);
+      doc.font("Helvetica-Bold").fontSize(12).text(`Phase ${phase.phase}: ${phase.title} [Difficulty: ${phase.difficulty}/10]`);
       doc.font("Helvetica").fontSize(10).text(phase.description);
       doc.moveDown(0.3);
 
@@ -157,8 +165,8 @@ async function generateDOCX(roadmap: RoadmapData): Promise<Buffer> {
   children.push(
     new Paragraph({
       children: [
-        new TextRun({ text: "총 예상 기간: ", bold: true }),
-        new TextRun({ text: roadmap.totalDuration }),
+        new TextRun({ text: "종합 난이도: ", bold: true }),
+        new TextRun({ text: `${roadmap.overallDifficulty}/10 (${getDifficultyLabel(roadmap.overallDifficulty)})` }),
       ],
     })
   );
@@ -182,7 +190,7 @@ async function generateDOCX(roadmap: RoadmapData): Promise<Buffer> {
             bold: true,
             size: 26,
           }),
-          new TextRun({ text: ` (${phase.duration})`, italics: true }),
+          new TextRun({ text: ` [난이도: ${phase.difficulty}/10]`, italics: true }),
         ],
       })
     );
