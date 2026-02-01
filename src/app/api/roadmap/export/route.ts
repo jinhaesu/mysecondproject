@@ -49,66 +49,66 @@ async function generatePDF(roadmap: RoadmapData): Promise<Buffer> {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    // Register Korean font (using built-in Helvetica for compatibility)
-    doc.font("Helvetica");
-
     // Title
-    doc.fontSize(24).text("Research Roadmap", { align: "center" });
+    doc.font("Helvetica-Bold").fontSize(24).text("Research Roadmap", { align: "center" });
     doc.moveDown(0.5);
-    doc.fontSize(16).text(roadmap.topic, { align: "center" });
+    doc.font("Helvetica").fontSize(16).text(roadmap.topic, { align: "center" });
     doc.moveDown(1);
 
     // Overview
-    doc.fontSize(14).text("Overview", { underline: true });
-    doc.fontSize(11).text(roadmap.overview);
+    doc.font("Helvetica-Bold").fontSize(14).text("Overview", { underline: true });
+    doc.font("Helvetica").fontSize(11).text(roadmap.overview);
     doc.moveDown(0.5);
     doc.fontSize(11).text(`Total Duration: ${roadmap.totalDuration}`);
     doc.moveDown(1);
 
     // Phases
-    doc.fontSize(14).text("Research Phases", { underline: true });
+    doc.font("Helvetica-Bold").fontSize(14).text("Research Phases", { underline: true });
     doc.moveDown(0.5);
 
     roadmap.phases.forEach((phase) => {
-      doc.fontSize(12).text(`Phase ${phase.phase}: ${phase.title} (${phase.duration})`, { bold: true });
-      doc.fontSize(10).text(phase.description);
+      doc.font("Helvetica-Bold").fontSize(12).text(`Phase ${phase.phase}: ${phase.title} (${phase.duration})`);
+      doc.font("Helvetica").fontSize(10).text(phase.description);
       doc.moveDown(0.3);
 
-      doc.fontSize(10).text("Tasks:", { bold: true });
+      doc.font("Helvetica-Bold").fontSize(10).text("Tasks:");
+      doc.font("Helvetica");
       phase.tasks.forEach((task) => {
-        doc.fontSize(10).text(`  • ${task}`);
+        doc.fontSize(10).text(`  - ${task}`);
       });
       doc.moveDown(0.3);
 
       if (phase.warnings.length > 0) {
-        doc.fontSize(10).text("Warnings:", { bold: true });
+        doc.font("Helvetica-Bold").fontSize(10).text("Warnings:");
+        doc.font("Helvetica");
         phase.warnings.forEach((warning) => {
-          doc.fontSize(10).text(`  ⚠ ${warning}`);
+          doc.fontSize(10).text(`  ! ${warning}`);
         });
         doc.moveDown(0.3);
       }
 
-      doc.fontSize(10).text("Deliverables: " + phase.deliverables.join(", "));
+      doc.font("Helvetica").fontSize(10).text("Deliverables: " + phase.deliverables.join(", "));
       doc.moveDown(0.8);
     });
 
     // Key Metrics
     doc.addPage();
-    doc.fontSize(14).text("Key Performance Indicators (KPI)", { underline: true });
+    doc.font("Helvetica-Bold").fontSize(14).text("Key Performance Indicators (KPI)", { underline: true });
     doc.moveDown(0.5);
 
     roadmap.keyMetrics.forEach((metric) => {
-      doc.fontSize(11).text(metric.name, { bold: true });
-      doc.fontSize(10).text(metric.description);
+      doc.font("Helvetica-Bold").fontSize(11).text(metric.name);
+      doc.font("Helvetica").fontSize(10).text(metric.description);
       doc.fontSize(10).text(`Target: ${metric.target} | Measurement: ${metric.measurement}`);
       doc.moveDown(0.5);
     });
 
     // Planning Tips
     doc.moveDown(0.5);
-    doc.fontSize(14).text("Planning Guidelines", { underline: true });
+    doc.font("Helvetica-Bold").fontSize(14).text("Planning Guidelines", { underline: true });
     doc.moveDown(0.5);
 
+    doc.font("Helvetica");
     roadmap.planningTips.forEach((tip, index) => {
       doc.fontSize(10).text(`${index + 1}. ${tip}`);
       doc.moveDown(0.3);
@@ -346,7 +346,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "지원하지 않는 형식입니다." }, { status: 400 });
     }
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
