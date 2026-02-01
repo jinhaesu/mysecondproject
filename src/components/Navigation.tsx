@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Microscope, Database, LogOut, User } from "lucide-react";
+import { Microscope, Database, LogOut, User, Map } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navigation() {
@@ -17,6 +17,7 @@ export default function Navigation() {
   const navItems = [
     { href: "/", label: "AI 분석", icon: Microscope },
     { href: "/data", label: "데이터", icon: Database },
+    { href: "/roadmap", label: "연구 로드맵", icon: Map },
   ];
 
   return (
