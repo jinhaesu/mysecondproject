@@ -58,8 +58,8 @@ export default function DataPage() {
     managerName: "",
     password: "",
   });
-  const [columns, setColumns] = useState<string[]>(["X", "Y"]);
-  const [rows, setRows] = useState<Record<string, string>[]>([{ X: "", Y: "" }]);
+  const [columns, setColumns] = useState<string[]>(["번호", "X", "Y"]);
+  const [rows, setRows] = useState<Record<string, string>[]>([{ "번호": "1", X: "", Y: "" }]);
 
   useEffect(() => {
     const saved = localStorage.getItem("experiments");
@@ -75,8 +75,8 @@ export default function DataPage() {
 
   const resetForm = () => {
     setFormData({ projectName: "", topic: "", purpose: "", managerName: "", password: "" });
-    setColumns(["X", "Y"]);
-    setRows([{ X: "", Y: "" }]);
+    setColumns(["번호", "X", "Y"]);
+    setRows([{ "번호": "1", X: "", Y: "" }]);
     setSelectedExperiment(null);
   };
 
@@ -203,6 +203,10 @@ export default function DataPage() {
   const addRow = () => {
     const newRow: Record<string, string> = {};
     columns.forEach((col) => (newRow[col] = ""));
+    // 첫 번째 열은 행 번호 자동 입력 (선택적)
+    if (columns[0] === "번호") {
+      newRow["번호"] = String(rows.length + 1);
+    }
     setRows([...rows, newRow]);
   };
 
@@ -214,6 +218,37 @@ export default function DataPage() {
   const updateCell = (rowIndex: number, colName: string, value: string) => {
     const newRows = [...rows];
     newRows[rowIndex] = { ...newRows[rowIndex], [colName]: value };
+    setRows(newRows);
+  };
+
+  // Excel 복사/붙여넣기 처리
+  const handlePaste = (e: React.ClipboardEvent, startRowIndex: number, startColIndex: number) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData("text");
+    const pasteRows = pasteData.split("\n").filter(row => row.trim() !== "");
+
+    const newRows = [...rows];
+
+    pasteRows.forEach((pasteRow, rowOffset) => {
+      const pasteCells = pasteRow.split("\t");
+      const targetRowIndex = startRowIndex + rowOffset;
+
+      // 필요시 행 추가
+      while (targetRowIndex >= newRows.length) {
+        const emptyRow: Record<string, string> = {};
+        columns.forEach(col => emptyRow[col] = "");
+        newRows.push(emptyRow);
+      }
+
+      pasteCells.forEach((cellValue, colOffset) => {
+        const targetColIndex = startColIndex + colOffset;
+        if (targetColIndex < columns.length) {
+          const colName = columns[targetColIndex];
+          newRows[targetRowIndex] = { ...newRows[targetRowIndex], [colName]: cellValue.trim() };
+        }
+      });
+    });
+
     setRows(newRows);
   };
 
@@ -729,12 +764,14 @@ export default function DataPage() {
                 </div>
 
                 <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <p className="text-xs text-gray-500 p-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+                    Excel에서 복사한 데이터를 셀에서 Ctrl+V로 붙여넣을 수 있습니다.
+                  </p>
                   <table className="w-full">
                     <thead className="bg-gray-50 dark:bg-gray-800">
                       <tr>
-                        <th className="w-10 p-2 text-center text-xs text-gray-500">#</th>
                         {columns.map((col, i) => (
-                          <th key={i} className="p-2 min-w-[120px]">
+                          <th key={i} className="p-2 min-w-[100px]">
                             <div className="flex items-center gap-1">
                               <input
                                 type="text"
@@ -759,18 +796,16 @@ export default function DataPage() {
                     <tbody>
                       {rows.map((row, rowIndex) => (
                         <tr key={rowIndex} className="border-t border-gray-200 dark:border-gray-700">
-                          <td className="p-2 text-center text-xs text-gray-400">
-                            {rowIndex + 1}
-                          </td>
                           {columns.map((col, colIndex) => (
-                            <td key={colIndex} className="p-1">
+                            <td key={colIndex} className="p-0">
                               <input
                                 type="text"
                                 value={row[col] || ""}
                                 onChange={(e) =>
                                   updateCell(rowIndex, col, e.target.value)
                                 }
-                                className="w-full px-2 py-1.5 text-sm bg-transparent border border-gray-200 dark:border-gray-700 rounded focus:ring-1 focus:ring-blue-500"
+                                onPaste={(e) => handlePaste(e, rowIndex, colIndex)}
+                                className="w-full px-2 py-2 text-sm bg-transparent border-0 border-r border-gray-200 dark:border-gray-700 focus:ring-1 focus:ring-blue-500 focus:ring-inset"
                               />
                             </td>
                           ))}
