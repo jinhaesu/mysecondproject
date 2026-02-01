@@ -32,7 +32,7 @@ export interface ResearchPlan {
   objective: string;
   phases: {
     name: string;
-    duration: string;
+    difficulty: number;
     tasks: string[];
     deliverables: string[];
   }[];

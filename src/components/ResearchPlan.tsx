@@ -3,7 +3,7 @@
 import { ResearchPlan as ResearchPlanType, FundamentalKnowledge } from "@/types";
 import {
   Target,
-  Clock,
+  Gauge,
   CheckCircle,
   Package,
   BookOpen,
@@ -13,6 +13,12 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useState } from "react";
+
+function getDifficultyColor(difficulty: number): string {
+  if (difficulty <= 3) return "bg-green-500";
+  if (difficulty <= 6) return "bg-yellow-500";
+  return "bg-red-500";
+}
 
 interface ResearchPlanProps {
   plan: ResearchPlanType | null;
@@ -79,10 +85,22 @@ export default function ResearchPlan({
                     <span className="font-medium text-sm">{phase.name}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {phase.duration}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <Gauge className="w-3 h-3 text-gray-400" />
+                      <div className="flex gap-0.5">
+                        {[...Array(10)].map((_, i) => (
+                          <div
+                            key={i}
+                            className={`w-1.5 h-3 rounded-sm ${
+                              i < phase.difficulty
+                                ? getDifficultyColor(phase.difficulty)
+                                : "bg-gray-200 dark:bg-gray-600"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500">{phase.difficulty}/10</span>
+                    </div>
                     {expandedPhase === index ? (
                       <ChevronUp className="w-4 h-4 text-gray-400" />
                     ) : (

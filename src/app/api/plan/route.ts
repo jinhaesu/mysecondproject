@@ -12,7 +12,7 @@ const SYSTEM_PROMPT = `당신은 연구 계획 수립 전문가입니다.
     "phases": [
       {
         "name": "단계명",
-        "duration": "예상 소요 기간",
+        "difficulty": 5,
         "tasks": ["세부 과제 1", "세부 과제 2"],
         "deliverables": ["산출물 1", "산출물 2"]
       }
@@ -32,7 +32,14 @@ const SYSTEM_PROMPT = `당신은 연구 계획 수립 전문가입니다.
     ],
     "recommendedResources": ["추천 학습 자료 1", "추천 학습 자료 2"]
   }
-}`;
+}
+
+난이도(difficulty)는 0-10 사이의 정수로 표현합니다:
+- 0-2: 매우 쉬움
+- 3-4: 쉬움
+- 5-6: 보통
+- 7-8: 어려움
+- 9-10: 매우 어려움`;
 
 export async function POST(request: NextRequest) {
   try {
