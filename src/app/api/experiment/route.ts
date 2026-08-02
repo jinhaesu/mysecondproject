@@ -46,7 +46,7 @@ ${experiment.rows
 `;
 
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-fable-5"),
       system: SYSTEM_PROMPT,
       prompt: `다음 실험 데이터를 분석해주세요:\n\n${dataDescription}`,
     });

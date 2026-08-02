@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-fable-5"),
       system: SYSTEM_PROMPT,
       prompt: `다음 연구 주제에 대한 상세한 연구 로드맵을 생성해주세요:\n\n"${topic}"`,
     });
