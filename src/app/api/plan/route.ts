@@ -73,7 +73,7 @@ ${summary ? `## 논문 요약
 2. 이 연구를 수행하기 위해 알아야 할 기초 지식을 정리해주세요`;
 
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-fable-5"),
       system: SYSTEM_PROMPT,
       prompt: prompt,
     });

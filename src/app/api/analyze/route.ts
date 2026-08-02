@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-fable-5"),
       system: SYSTEM_PROMPT,
       prompt: userContent,
     });

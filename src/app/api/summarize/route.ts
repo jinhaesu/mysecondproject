@@ -38,7 +38,7 @@ DOI: ${paper.doi || "N/A"}
 이 논문의 ID는 "${paper.id}"입니다.`;
 
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-fable-5"),
       system: SYSTEM_PROMPT,
       prompt: prompt,
     });
