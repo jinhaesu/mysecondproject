@@ -9,7 +9,7 @@ interface Message {
   sources?: string[];
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://mysecondproject-production-935b.up.railway.app";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://mysecondproject-557811875995.asia-northeast3.run.app";
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
