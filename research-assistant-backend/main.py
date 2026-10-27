@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
 from supabase import create_client, Client
+import google.auth
+import google.auth.exceptions
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
@@ -42,15 +44,16 @@ openai_client = OpenAI(api_key=OPENAI_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY) if SUPABASE_URL and SUPABASE_SERVICE_KEY else None
 
 def get_drive_service():
-    """Google Drive API 서비스 생성"""
-    if not GOOGLE_SERVICE_ACCOUNT_KEY:
-        raise HTTPException(status_code=500, detail="Google Service Account Key not configured")
-
-    key_data = json.loads(GOOGLE_SERVICE_ACCOUNT_KEY)
-    credentials = service_account.Credentials.from_service_account_info(
-        key_data,
-        scopes=['https://www.googleapis.com/auth/drive.readonly']
-    )
+    """Google Drive API 서비스 생성 (키 JSON이 없으면 Cloud Run 서비스계정 신원으로 인증)"""
+    scopes = ['https://www.googleapis.com/auth/drive.readonly']
+    if GOOGLE_SERVICE_ACCOUNT_KEY:
+        key_data = json.loads(GOOGLE_SERVICE_ACCOUNT_KEY)
+        credentials = service_account.Credentials.from_service_account_info(key_data, scopes=scopes)
+    else:
+        try:
+            credentials, _ = google.auth.default(scopes=scopes)
+        except google.auth.exceptions.DefaultCredentialsError:
+            raise HTTPException(status_code=500, detail="Google credentials not configured")
     return build('drive', 'v3', credentials=credentials)
 
 
